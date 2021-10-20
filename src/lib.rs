@@ -1,2 +1,2 @@
 
-mod pdb;
+pub mod pdb;
