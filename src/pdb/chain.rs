@@ -8,7 +8,6 @@ use std::ops::Index;
 pub struct Chain {
 	residues: Vec<Residue>,
 	chainid : ArrayString< 1 >,
-	itr     : usize,
 }
 
 impl Chain {
@@ -17,7 +16,6 @@ impl Chain {
 		Self {
 			residues,
 			chainid,
-			itr: 0,
 		}
 	}
 	pub fn residues(&self)            -> &Vec<Residue> { &self.residues }

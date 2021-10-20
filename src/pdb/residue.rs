@@ -9,7 +9,6 @@ pub struct Residue {
 	atoms: Vec<Atom>,
 	name : ArrayString< 3 >,
 	resid: i32,
-	itr  : usize,
 }
 
 
@@ -20,7 +19,6 @@ impl Residue {
 			atoms,
 			name,
 			resid,
-			itr: 0,
 		}
 	}
 	pub fn atoms(&self)               -> &Vec<Atom> {&self.atoms}
