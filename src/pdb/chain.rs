@@ -21,6 +21,7 @@ impl Chain {
 	pub fn residues(&self)            -> &Vec<Residue> { &self.residues }
 	pub fn residues_as_mut(&mut self) -> &mut Vec<Residue> { &mut self.residues }
 	pub fn chain_id(&self)            -> ArrayString< 1 > { self.chainid }
+	pub fn chain_id_as_mut(&mut self) -> &mut ArrayString< 1 > { &mut self.chainid }
 	pub fn chain_id_as_str(&self)     -> &str { &self.chainid }
 	pub fn len(&self)                 -> usize { self.residues.len() }
 

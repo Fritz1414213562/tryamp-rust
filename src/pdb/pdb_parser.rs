@@ -44,7 +44,7 @@ impl PDBParser {
 			}
 			if util::starts_with("TER", &line) {
 				curr_chain.residues_as_mut().push(curr_residue);
-				curr_chain.chain_id().push_str(&curr_chainid);
+				curr_chain.chain_id_as_mut().push_str(&curr_chainid);
 				model.chains_as_mut().push(curr_chain);
 				curr_residue = Residue::new(Vec::<Atom>::new(), ArrayString::< 3 >::new(), 0);
 				curr_chain = Chain::new(Vec::<Residue>::new(), ArrayString::< 1 >::new());
