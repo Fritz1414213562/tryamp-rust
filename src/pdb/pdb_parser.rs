@@ -57,22 +57,20 @@ impl PDBParser {
 					Err(err) => return Err(err.to_string()),
 				}
 
-				let atom_resid: i32;
-				let atom_chainid: ArrayString< 1 >;
+				let mut atom_resid: i32 = 0;
 				match atom_strings[6].parse::<i32>() {
 					Ok(val) => atom_resid = val,
 					Err(err) => return Err(err.to_string()),
 				}
-				match ArrayString::< 1 >::from(&atom_strings[5]) {
-					Ok(val) => atom_chainid = val,
-					Err(err) => return Err(err.to_string()),
-				}
 				if is_on_top_of_chain {
 					curr_resid = atom_resid;
-					curr_chainid = atom_chainid;
 					match util::build_residue(&atom_strings, curr_resid) {
 						Ok(val) => curr_residue = val,
 						Err(err) => return Err(err),
+					}
+					match ArrayString::< 1 >::from(&atom_strings[5]) {
+						Ok(val) => curr_chainid = val,
+						Err(err) => return Err(err.to_string()),
 					}
 					is_on_top_of_chain = false;
 				}
