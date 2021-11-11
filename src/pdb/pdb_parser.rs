@@ -92,7 +92,7 @@ impl PDBParser {
 				Ok (val) => match val {
 					Some(sequence) => {
 						if !retval.sequences().contains_key(&sequence.0) {
-							retval.sequences_as_mut().insert(sequence.0, Vec::<String>::new());
+							retval.sequences_as_mut().insert(sequence.0, sequence.1);
 						}
 						else {
 							retval.sequences_as_mut().get_mut(&sequence.0).unwrap().extend(sequence.1);
