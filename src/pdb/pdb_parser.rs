@@ -1,5 +1,6 @@
 use arrayvec::{ArrayVec, ArrayString};
 use std::io::{Read, BufRead, BufReader};
+use super::pdbsystem::PDBSystem;
 use super::pdbmodel::PDBModel;
 use super::chain::Chain;
 use super::residue::Residue;
@@ -19,16 +20,49 @@ impl PDBParser {
 	pub fn new() -> Self {
 		Self
 	}
+
+	pub fn read_sequences(&mut self, line: &str) -> Result<Option<(String, Vec<String>)>, String> {
+
+		if !util::starts_with("SEQRES", &line) { return Ok(None); }
+		let chainid: String = (&line[11..12]).trim().to_string();
+
+		let mut retval: Vec<String> = Vec::<String>::new();
+		let mut i_resname: usize = 18;
+		let resname_size: usize = 4;
+		let iter_num: usize = 13;
+
+		for _ in 0..iter_num {
+			if &line[i_resname..(i_resname + resname_size)] == "    " { break; }
+			retval.push((&line[i_resname..(i_resname + resname_size)]).trim().to_string());
+			i_resname += resname_size;
+		}
+
+		Ok(Some((chainid, retval)))
+	}
+
+	pub fn read_missing_residue(&mut self, line: &str) -> Result<Option<(String, i32)>, String> {
+
+		if     !util::starts_with("REMARK 465     ", &line) { return Ok(None); }
+		else if util::starts_with("REMARK 465      ", &line) { return Ok(None); }
+
+		let chainid: String = (&line[19..20]).trim().to_string();
+		let resid = match (&line[21..26]).trim().parse::<i32>() {
+			Ok(val) => val,
+			Err(err) => return Err(err.to_string()),
+		};
+		
+		Ok(Some((chainid, resid)))
+	}
 	
-	pub fn read_model<R: Read>(&mut self, file: R) -> Result<Vec<PDBModel>, String> {
+	pub fn read_model<R: Read>(&mut self, file: R) -> Result<PDBSystem, String> {
 		let reader = &mut BufReader::<R>::new(file);
-		let mut retval: Vec<PDBModel> = Vec::<PDBModel>::new();
-		let mut model : PDBModel = PDBModel::new(Vec::<Chain>::new());
+		let mut retval: PDBSystem = PDBSystem::new();
+		let mut model : PDBModel = PDBModel::new();
 
 		let mut curr_resid: i32 = 0;
 		let mut curr_chainid: ArrayString< 1 > = ArrayString::< 1 >::new();
-		let mut curr_residue: Residue = Residue::new(Vec::<Atom>::new(), ArrayString::< 3 >::new(), 0);
-		let mut curr_chain  : Chain = Chain::new(Vec::<Residue>::new(), ArrayString::< 1 >::new());
+		let mut curr_residue: Residue = Residue::new();
+		let mut curr_chain  : Chain = Chain::new();
 		let mut is_on_top_of_chain = true;
 
 		for result in reader.lines() {
@@ -38,16 +72,47 @@ impl PDBParser {
 			};
 
 			if line.is_empty() { continue; }
+
+			match self.read_missing_residue(&line) {
+				Ok(val) => match val {
+					Some(missing_residue) => {
+						if !retval.missing_residues().contains_key(&missing_residue.0) {
+							retval.missing_residues_as_mut().insert(missing_residue.0, vec![missing_residue.1]);
+						}
+						else {
+							retval.missing_residues_as_mut().get_mut(&missing_residue.0).unwrap().push(missing_residue.1);
+						}
+					}
+					None => (),
+				}
+				Err(err) => return Err(err),
+			}
+
+			match self.read_sequences(&line) {
+				Ok (val) => match val {
+					Some(sequence) => {
+						if !retval.sequences().contains_key(&sequence.0) {
+							retval.sequences_as_mut().insert(sequence.0, Vec::<String>::new());
+						}
+						else {
+							retval.sequences_as_mut().get_mut(&sequence.0).unwrap().extend(sequence.1);
+						}
+					}
+					None => (),
+				}
+				Err(err) => return Err(err),
+			}
+
 			if util::starts_with("END", &line) {
-				retval.push(model);
-				model = PDBModel::new(Vec::<Chain>::new());
+				retval.models_as_mut().push(model);
+				model = PDBModel::new();
 			}
 			if util::starts_with("TER", &line) {
 				curr_chain.residues_as_mut().push(curr_residue);
 				curr_chain.chain_id_as_mut().push_str(&curr_chainid);
 				model.chains_as_mut().push(curr_chain);
-				curr_residue = Residue::new(Vec::<Atom>::new(), ArrayString::< 3 >::new(), 0);
-				curr_chain = Chain::new(Vec::<Residue>::new(), ArrayString::< 1 >::new());
+				curr_residue = Residue::new();
+				curr_chain = Chain::new();
 				is_on_top_of_chain = true;
 			}
 			if util::starts_with("ATOM", &line) {
@@ -57,11 +122,10 @@ impl PDBParser {
 					Err(err) => return Err(err.to_string()),
 				}
 
-				let mut atom_resid: i32 = 0;
-				match atom_strings[6].parse::<i32>() {
-					Ok(val) => atom_resid = val,
+				let atom_resid: i32 = match atom_strings[6].parse::<i32>() {
+					Ok(val) => val,
 					Err(err) => return Err(err.to_string()),
-				}
+				};
 				if is_on_top_of_chain {
 					curr_resid = atom_resid;
 					match util::build_residue(&atom_strings, curr_resid) {
@@ -90,7 +154,7 @@ impl PDBParser {
 				curr_residue.atoms_as_mut().push(curr_atom);
 			}
 		}
-		if retval.is_empty() { retval.push(model); }
+		if retval.models().is_empty() { retval.models_as_mut().push(model); }
 		Ok(retval)
 	}
 
@@ -206,12 +270,16 @@ mod util {
 	}
 
 	pub fn build_residue(atom_strings: &ArrayVec<String, 15>, atom_resid: i32) -> Result<Residue, String> {
-		let resiname: ArrayString::< 3 >;
-		match ArrayString::< 3 >::from(&atom_strings[4]) {
-			Ok(val) => resiname = val,
-			Err(err) => return Err(err.to_string()),
-		}
-		Ok(Residue::new(Vec::<Atom>::new(), resiname, atom_resid))
+	//	let resiname: ArrayString::< 3 > = match ArrayString::< 3 >::from(&atom_strings[4]) {
+	//		Ok(val) => val,
+	//		Err(err) => return Err(err.to_string()),
+	//	};
+		let mut retval: Residue = Residue::new();
+	//	retval.residue_name_as_mut().push_str(&resiname);
+		retval.residue_name_as_mut().push_str(&atom_strings[4]);
+	//	retval.residue_id_as_mut().push(atom_resid);
+		retval.change_residue_id(atom_resid);
+		Ok(retval)
 	}
 
 }
