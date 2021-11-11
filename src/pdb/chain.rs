@@ -12,10 +12,10 @@ pub struct Chain {
 
 impl Chain {
 
-	pub fn new(residues: Vec<Residue>, chainid: ArrayString< 1 >) -> Self {
+	pub fn new() -> Self {
 		Self {
-			residues,
-			chainid,
+			residues: Vec::<Residue>::new(),
+			chainid: ArrayString::< 1 >::new(),
 		}
 	}
 	pub fn residues(&self)            -> &Vec<Residue> { &self.residues }
