@@ -7,15 +7,15 @@ pub struct PDBModel {
 }
 
 impl PDBModel {
-	pub fn new(chains: Vec<Chain>) -> Self {
+	pub fn new() -> Self {
 		Self {
-			chains,
+			chains: Vec::<Chain>::new(),
 		}
 	}
 
-	pub fn chains(&self)            -> &Vec<Chain> { &self.chains }
-	pub fn chains_as_mut(&mut self) -> &mut Vec<Chain> { &mut self.chains }
-	pub fn len(&self)               -> usize { self.chains.len() }
+	pub fn chains(&self)                      -> &Vec<Chain> { &self.chains }
+	pub fn chains_as_mut(&mut self)           -> &mut Vec<Chain> { &mut self.chains }
+	pub fn len(&self)                         -> usize { self.chains.len() }
 }
 
 impl Index<usize> for PDBModel {
