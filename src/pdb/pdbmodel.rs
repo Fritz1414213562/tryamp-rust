@@ -15,6 +15,9 @@ impl PDBModel {
 
 	pub fn chains(&self)                      -> &Vec<Chain> { &self.chains }
 	pub fn chains_as_mut(&mut self)           -> &mut Vec<Chain> { &mut self.chains }
+	pub fn chain_of(&self, entry_id: &str)    -> Option<&Chain> {
+		self.chains.iter().find(|ch| ch.chain_id_as_str() == entry_id)
+	}
 	pub fn chain_name(&self)                  -> Vec<String> { self.chains.iter().map(|ch| ch.chain_id().to_string()).collect() }
 	pub fn len(&self)                         -> usize { self.chains.len() }
 }
