@@ -20,6 +20,7 @@ impl Chain {
 	}
 	pub fn residues(&self)            -> &Vec<Residue> { &self.residues }
 	pub fn residues_as_mut(&mut self) -> &mut Vec<Residue> { &mut self.residues }
+	pub fn residue_ids(&self)         -> Vec<i32> { self.residues.iter().map(|res| res.residue_id()).collect() }
 	pub fn chain_id(&self)            -> ArrayString< 1 > { self.chainid }
 	pub fn chain_id_as_mut(&mut self) -> &mut ArrayString< 1 > { &mut self.chainid }
 	pub fn chain_id_as_str(&self)     -> &str { &self.chainid }
