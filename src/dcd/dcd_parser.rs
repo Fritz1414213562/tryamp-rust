@@ -59,7 +59,7 @@ impl DCDParser {
 		let coord_ys: Vec<f32> = coord_y_bytes.chunks(4).map(|coord_y_byte| f32::from_le_bytes(coord_y_byte.try_into().expect("Can't convert [u8] to [u8; 4] for parsing coordinate_y"))).collect();
 		let coord_z_bytes = self.read_block(bytes)?;
 		let coord_zs: Vec<f32> = coord_z_bytes.chunks(4).map(|coord_z_byte| f32::from_le_bytes(coord_z_byte.try_into().expect("Can't convert [u8] to [u8; 4] for parsing coordinate_z"))).collect();
-		Ok(Coordinates::<f32>::new(coord_xs, coord_ys, coord_zs))
+		Coordinates::<f32>::new(coord_xs, coord_ys, coord_zs)
 	}
 
 

@@ -66,10 +66,7 @@ impl PDBParser {
 		let mut is_on_top_of_chain = true;
 
 		for result in reader.lines() {
-			let line = match result {
-				Ok(buffer) => buffer,
-				Err(err) => return Err(err.to_string()),
-			};
+			let line = result.map_err(|err| err.to_string())?;
 
 			if line.is_empty() { continue; }
 
@@ -104,6 +101,12 @@ impl PDBParser {
 			}
 
 			if util::starts_with("END", &line) {
+				let chain_ids = model.chain_name();
+				for chain_id in &chain_ids {
+					if !retval.missing_residues().contains_key(chain_id) {
+						retval.missing_residues_as_mut().insert(chain_id.clone(), Vec::<i32>::new());
+					}
+				}
 				retval.models_as_mut().push(model);
 				model = PDBModel::new();
 			}
@@ -115,46 +118,34 @@ impl PDBParser {
 				curr_chain = Chain::new();
 				is_on_top_of_chain = true;
 			}
-			if util::starts_with("ATOM", &line) {
-				let atom_strings: ArrayVec<String, 15>;
-				match util::read_atom(&line) {
-					Ok(val) => atom_strings = val,
-					Err(err) => return Err(err.to_string()),
-				}
+			if util::starts_with("ATOM", &line) || util::starts_with("HETATM", &line) {
+				let atom_strings: ArrayVec<String, 15> = util::read_atom(&line)?;
+				let atom_resid: i32 = atom_strings[6].parse::<i32>().map_err(|err| err.to_string())?;
 
-				let atom_resid: i32 = match atom_strings[6].parse::<i32>() {
-					Ok(val) => val,
-					Err(err) => return Err(err.to_string()),
-				};
 				if is_on_top_of_chain {
 					curr_resid = atom_resid;
-					match util::build_residue(&atom_strings, curr_resid) {
-						Ok(val) => curr_residue = val,
-						Err(err) => return Err(err),
-					}
-					match ArrayString::< 1 >::from(&atom_strings[5]) {
-						Ok(val) => curr_chainid = val,
-						Err(err) => return Err(err.to_string()),
-					}
+					curr_residue = util::build_residue(&atom_strings, curr_resid)?;
+					curr_chainid = ArrayString::< 1 >::from(&atom_strings[5]).map_err(|err| err.to_string())?;
 					is_on_top_of_chain = false;
 				}
 				if curr_resid != atom_resid {
 					curr_chain.residues_as_mut().push(curr_residue);
 					curr_resid = atom_resid;
-					match util::build_residue(&atom_strings, curr_resid) {
-						Ok(val) => curr_residue = val,
-						Err(err) => return Err(err),
-					}
+					curr_residue = util::build_residue(&atom_strings, curr_resid)?;
 				}
-				let curr_atom: Atom;
-				match util::build_atom(&atom_strings) {
-					Ok(val) => curr_atom = val,
-					Err(err) => return Err(err),
-				}
+				let curr_atom: Atom = util::build_atom(&atom_strings)?;
 				curr_residue.atoms_as_mut().push(curr_atom);
 			}
 		}
-		if retval.models().is_empty() { retval.models_as_mut().push(model); }
+		if retval.models().is_empty() {
+			let chain_ids = model.chain_name();
+			for chain_id in &chain_ids {
+				if !retval.missing_residues().contains_key(chain_id) {
+					retval.missing_residues_as_mut().insert(chain_id.clone(), Vec::<i32>::new());
+				}
+			}
+			retval.models_as_mut().push(model);
+		}
 		Ok(retval)
 	}
 
@@ -176,7 +167,7 @@ mod util {
 		if line.len() < 54 {
 			return Err(format!("ATOM line does not have enough length. \n{}", line));
 		}
-		if &line[..6] != "ATOM  " {
+		if &line[..6] != "ATOM  " && &line[..6] != "HETATM"  {
 			return Err(format!("This line is not 'ATOM' line. \n{}", line));
 		}
 		let mut retval = ArrayVec::<String, 15>::new();
@@ -220,28 +211,28 @@ mod util {
 			Ok(val) => ins_code = val,
 			Err(err) => return Err(err.to_string()),
 		}
-		let coord_x: f64;
-		match atom_strings[8].parse::<f64>() {
+		let coord_x: f32;
+		match atom_strings[8].parse::<f32>() {
 			Ok(val) => coord_x = val,
 			Err(err) => return Err(err.to_string()),
 		}
-		let coord_y: f64;
-		match atom_strings[9].parse::<f64>() {
+		let coord_y: f32;
+		match atom_strings[9].parse::<f32>() {
 			Ok(val) => coord_y = val,
 			Err(err) => return Err(err.to_string()),
 		}
-		let coord_z: f64;
-		match atom_strings[10].parse::<f64>() {
+		let coord_z: f32;
+		match atom_strings[10].parse::<f32>() {
 			Ok(val) => coord_z = val,
 			Err(err) => return Err(err.to_string()),
 		}
-		let occup: f64;
-		match atom_strings[11].parse::<f64>() {
+		let occup: f32;
+		match atom_strings[11].parse::<f32>() {
 			Ok(val) => occup = val,
 			Err(err) => return Err(err.to_string()),
 		}
-		let tempf: f64;
-		match atom_strings[12].parse::<f64>() {
+		let tempf: f32;
+		match atom_strings[12].parse::<f32>() {
 			Ok(val) => tempf = val,
 			Err(err) => return Err(err.to_string()),
 		}
@@ -261,7 +252,7 @@ mod util {
 			atom_name,
 			alt_loc,
 			ins_code,
-			ArrayVec::<f64, 3>::from([coord_x, coord_y, coord_z]),
+			[coord_x, coord_y, coord_z],
 			occup,
 			tempf,
 			elem,

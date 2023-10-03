@@ -21,6 +21,18 @@ fn convert_aa_3_to_1(aa_3letter: &str) -> Result<char, String> {
 		"VAL" => Ok('V'),
 		"TRP" => Ok('W'),
 		"TYR" => Ok('Y'),
+		// modified residue
+		"NLE" => Ok('.'),
+		"M3L" => Ok('.'),
+		// DNA residue
+		"DC"  => Ok('.'),
+		"DA"  => Ok('.'),
+		"DG"  => Ok('.'),
+		"DT"  => Ok('.'),
+		"C"   => Ok('.'),
+		"A"   => Ok('.'),
+		"G"   => Ok('.'),
+		"T"   => Ok('.'),
 		_     => Err(format!("Unknown residue name, {} exists.", aa_3letter).to_string()),
 	}
 }

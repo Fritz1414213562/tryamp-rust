@@ -50,4 +50,8 @@ impl DCDTraj {
 	pub fn atom_num(&self)              -> i32 {self.atom_num}
 	pub fn trajectory(&self)            -> &Vec<Coordinates<f32>> {&self.trajectory}
 	pub fn trajectory_as_mut(&mut self) -> &mut Vec<Coordinates<f32>> {&mut self.trajectory}
+	pub fn change_trajectory(&mut self, traj: Vec<Coordinates<f32>>) {self.trajectory = traj}
+	pub fn change_init_frame(&mut self, ini_frame: i32) {self.initial_frame_id = ini_frame}
+	pub fn change_frame_num(&mut self, frame_number: i32) {self.frame_num = frame_number}
+	pub fn change_step_num(&mut self, step_number: i32) {self.step_num = step_number}
 }

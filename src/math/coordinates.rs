@@ -1,5 +1,6 @@
 use num::Float;
 
+#[derive(Clone)]
 pub struct Coordinates<T: Float> {
 	xs: Vec<T>,
 	ys: Vec<T>,
@@ -7,12 +8,15 @@ pub struct Coordinates<T: Float> {
 }
 
 impl<T: Float> Coordinates<T> {
-	pub fn new(xs: Vec<T>, ys: Vec<T>, zs: Vec<T>) -> Self {
-		Self {
+	pub fn new(xs: Vec<T>, ys: Vec<T>, zs: Vec<T>) -> Result<Self, String> {
+		if xs.len() != ys.len() || xs.len() != zs.len() {
+			return Err("Error: The size of xs, ys, and zs is inconsistent.".to_string())
+		}
+		Ok(Self {
 			xs,
 			ys,
 			zs,
-		}
+		})
 	}
 
 	pub fn atom(&self, index: usize) -> Option<[T; 3]> {
@@ -21,5 +25,11 @@ impl<T: Float> Coordinates<T> {
 		let z = match self.zs.get(index) {Some(val) => val.clone(), None => return None,};
 		Some([x, y, z])
 	}
-}
 
+	pub fn len(&self) -> usize { self.xs.len() }
+
+	pub fn xs(&self) -> &Vec<T> { &self.xs }
+	pub fn ys(&self) -> &Vec<T> { &self.ys }
+	pub fn zs(&self) -> &Vec<T> { &self.zs }
+
+}

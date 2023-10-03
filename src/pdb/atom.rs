@@ -1,5 +1,5 @@
-use arrayvec::{ArrayVec, ArrayString};
-
+//use arrayvec::{ArrayVec, ArrayString};
+use arrayvec::ArrayString;
 
 
 pub struct Atom {
@@ -7,9 +7,9 @@ pub struct Atom {
 	name      : ArrayString< 4 >,
 	altloc    : ArrayString< 1 >,
 	icode     : ArrayString< 1 >,
-	coordinate: ArrayVec<f64, 3>,
-	occupancy : f64,
-	tempfactor: f64,
+	coordinate: [f32; 3],
+	occupancy : f32,
+	tempfactor: f32,
 	element   : ArrayString< 2 >,
 	charge    : ArrayString< 2 >,
 }
@@ -22,9 +22,9 @@ impl Atom {
 		name      : ArrayString< 4 >,
 		altloc    : ArrayString< 1 >,
 		icode     : ArrayString< 1 >,
-		coordinate: ArrayVec<f64, 3>,
-		occupancy : f64,
-		tempfactor: f64,
+		coordinate: [f32; 3],
+		occupancy : f32,
+		tempfactor: f32,
 		element   : ArrayString< 2 >,
 		charge    : ArrayString< 2 >) -> Self {
 		Self {
@@ -48,9 +48,9 @@ impl Atom {
 	pub fn altloc_as_str(&self)         -> &str {&self.altloc}
 	pub fn inscode(&self)               -> ArrayString< 1 > {self.icode}
 	pub fn inscode_as_str(&self)        -> &str {&self.icode}
-	pub fn coordinate(&self)            -> &ArrayVec<f64, 3> {&self.coordinate}
-	pub fn occupancy(&self)             -> f64  {self.occupancy}
-	pub fn tempfactor(&self)            -> f64  {self.tempfactor}
+	pub fn coordinate(&self)            -> &[f32; 3] {&self.coordinate}
+	pub fn occupancy(&self)             -> f32  {self.occupancy}
+	pub fn tempfactor(&self)            -> f32  {self.tempfactor}
 	pub fn element_symbol(&self)        -> ArrayString< 2 > {self.element}
 	pub fn element_symbol_as_str(&self) -> &str {&self.element}
 	pub fn charge(&self)                -> ArrayString< 2 > {self.charge}
