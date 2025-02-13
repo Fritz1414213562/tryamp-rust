@@ -10,7 +10,7 @@ pub struct Coordinates<T: Float> {
 impl<T: Float> Coordinates<T> {
 	pub fn new(xs: Vec<T>, ys: Vec<T>, zs: Vec<T>) -> Result<Self, String> {
 		if xs.len() != ys.len() || xs.len() != zs.len() {
-			return Err("Error: The size of xs, ys, and zs is inconsistent.".to_string())
+			return Err(format!("Error: The size of xs, ys, and zs is inconsistent. {} {} {}", xs.len(), ys.len(), zs.len()).to_string())
 		}
 		Ok(Self {
 			xs,
