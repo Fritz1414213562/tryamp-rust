@@ -43,7 +43,8 @@ impl PDBParser {
 	pub fn read_missing_residue(&mut self, line: &str) -> Result<Option<(String, i32)>, String> {
 
 		if     !util::starts_with("REMARK 465     ", &line) { return Ok(None); }
-		else if util::starts_with("REMARK 465      ", &line) { return Ok(None); }
+		//else if util::starts_with("REMARK 465      ", &line) { return Ok(None); }
+		else if (&line[15..]).trim().len() < 1 { return Ok(None); }
 
 		let chainid: String = (&line[19..20]).trim().to_string();
 		let resid = match (&line[21..26]).trim().parse::<i32>() {
