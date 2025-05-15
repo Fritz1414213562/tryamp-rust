@@ -172,11 +172,11 @@ mod util {
 			return Err(format!("This line is not 'ATOM' line. \n{}", line));
 		}
 		let mut retval = ArrayVec::<String, 15>::new();
-		retval.push(line[ 0.. 6].trim().to_string()); // Record name
+		retval.push(line[ 0.. 6].to_string()); // Record name
 		retval.push(line[ 6..11].trim().to_string()); // Atom serial number
-		retval.push(line[12..16].trim().to_string()); // Atom name
-		retval.push(line[16..17].trim().to_string()); // Alternative location ID
-		retval.push(line[17..20].trim().to_string()); // Residue name
+		retval.push(line[12..16].to_string()); // Atom name
+		retval.push(line[16..17].to_string()); // Alternative location ID
+		retval.push(line[17..20].to_string()); // Residue name
 		retval.push(line[21..22].trim().to_string()); // Chain ID
 		retval.push(line[22..26].trim().to_string()); // Residue sequence number
 		retval.push(line[27..28].trim().to_string()); // Code for insertion of residue
